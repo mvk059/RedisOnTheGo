@@ -5,36 +5,36 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/commands"
 	"github.com/codecrafters-io/redis-starter-go/app/data"
 	"github.com/codecrafters-io/redis-starter-go/app/errors"
-	"net"
+	"io"
 	"strings"
 )
 
-func Parse(conn net.Conn, storage data.Storage, cmd RedisCommand) {
+func Parse(rw io.ReadWriter, storage data.StorageHelper, cmd RedisCommand) {
 	switch instruction := strings.ToUpper(cmd.Command); instruction {
 	case "PING":
-		commands.Ping(conn)
+		commands.Ping(rw)
 	case "ECHO":
 		if cmd.ArgsLength != 1 {
-			errors.InvalidArgumentLengthError(conn)
+			errors.InvalidArgumentLengthError(rw)
 			break
 		}
-		commands.Echo(conn, strings.Join(cmd.Args, " "))
+		commands.Echo(rw, strings.Join(cmd.Args, " "))
 	case "SET":
 		if cmd.ArgsLength != 2 {
-			errors.InvalidArgumentLengthError(conn)
+			errors.InvalidArgumentLengthError(rw)
 			break
 		}
-		commands.Set(conn, storage, cmd.Args)
+		commands.Set(rw, storage, cmd.Args)
 	case "GET":
 		if cmd.ArgsLength != 1 {
-			errors.InvalidArgumentLengthError(conn)
+			errors.InvalidArgumentLengthError(rw)
 			break
 		}
-		commands.Get(conn, storage, cmd.Args[0])
+		commands.Get(rw, storage, cmd.Args[0])
 	default:
 		fmt.Printf("%s: command not found\n", instruction)
 		errMessage := fmt.Sprintf("+COMMAND NOT RECOGNISED: %s.\r\n", instruction)
-		_, err := conn.Write([]byte(errMessage))
+		_, err := rw.Write([]byte(errMessage))
 		errors.HandleWritingError(err, "")
 	}
 }
