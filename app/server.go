@@ -4,9 +4,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/app/data"
+	"github.com/codecrafters-io/redis-starter-go/app/parser"
 	"io"
 	"net"
-	"strings"
 )
 
 var (
@@ -20,28 +21,30 @@ func main() {
 }
 
 func start() {
+	fmt.Printf("Begin Process\n")
 	listener, err := net.Listen("tcp", *listen)
 	if err != nil {
 		fmt.Println("\033[31mFailed to bind to port 6379\n\033[0m")
 		return
 	}
-	//defer l.Close()
+	fmt.Printf("Listening on %s\n", listener.Addr())
 
-	createConnection(listener)
+	storage := data.NewStorage()
+	createConnection(listener, storage)
 }
 
-func createConnection(listener net.Listener) {
+func createConnection(listener net.Listener, storage data.Storage) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("\033[31mError accepting connection: \033[0m", err.Error())
 			return
 		}
-		go handleConnection(conn)
+		go handleConnection(conn, storage)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, storage data.Storage) {
 	defer conn.Close()
 
 	buf := make([]byte, 1024)
@@ -55,33 +58,11 @@ func handleConnection(conn net.Conn) {
 			return
 		}
 
-		parts := strings.Split(string(buf), "\r\n")
-		fmt.Printf("Parts: %s\n", parts)
-
-		switch instruction := strings.ToUpper(parts[2]); instruction {
-		case "PING":
-			_, err = conn.Write([]byte("+PONG\r\n"))
-			if err != nil {
-				fmt.Println("\033[31mError writing data\033[0m", err.Error())
-				return
-			}
-		case "ECHO":
-			var echo string
-			if len(parts) == 6 {
-				echo = fmt.Sprintf("+%s\r\n", parts[4])
-			} else {
-				echo = "+(error) ERR wrong number of arguments for command\r\n"
-			}
-			_, err := conn.Write([]byte(echo))
-			if err != nil {
-				fmt.Println("\033[31mError writing data\033[0m", err.Error())
-				return
-			}
-		default:
-			fmt.Printf("%s: command not found\n", instruction)
-			errMessage := fmt.Sprintf("+COMMAND NOT RECOGNISED: %s.\r\n", instruction)
-			_, _ = conn.Write([]byte(errMessage))
+		redisCommand, err := parser.ParseRedisCommand(buf)
+		if err != nil {
+			fmt.Printf(err.Error())
+			return
 		}
-
+		parser.Parse(conn, storage, *redisCommand)
 	}
 }
