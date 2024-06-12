@@ -6,7 +6,35 @@ import (
 )
 
 func TestParseRedisCommand(t *testing.T) {
-	tests := []struct {
+	echoCommands := []struct {
+		name    string
+		input   string
+		want    *RedisCommand
+		wantErr bool
+	}{
+		{
+			name:  "ECHO command",
+			input: "*2\r\n$4\r\nECHO\r\n$6\r\nbanana\r\n",
+			want: &RedisCommand{
+				Command:    "ECHO",
+				Args:       []string{"banana"},
+				ArgsLength: 1,
+			},
+			wantErr: false,
+		},
+		{
+			name:  "ECHO command with spaces",
+			input: "*2\r\n$4\r\nECHO\r\n$12\r\nbanana hello\r\n",
+			want: &RedisCommand{
+				Command:    "ECHO",
+				Args:       []string{"banana hello"},
+				ArgsLength: 1,
+			},
+			wantErr: false,
+		},
+	}
+
+	getSetSimpleCommands := []struct {
 		name    string
 		input   string
 		want    *RedisCommand
@@ -62,36 +90,14 @@ func TestParseRedisCommand(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name:  "PING command",
-			input: "*1\r\n$4\r\nPING\r\n",
-			want: &RedisCommand{
-				Command:    "PING",
-				Args:       []string{},
-				ArgsLength: 0,
-			},
-			wantErr: false,
-		},
-		{
-			name:  "ECHO command with spaces",
-			input: "*2\r\n$4\r\nECHO\r\n$12\r\nbanana hello\r\n",
-			want: &RedisCommand{
-				Command:    "ECHO",
-				Args:       []string{"banana hello"},
-				ArgsLength: 1,
-			},
-			wantErr: false,
-		},
-		{
-			name:  "ECHO command",
-			input: "*2\r\n$4\r\nECHO\r\n$6\r\nbanana\r\n",
-			want: &RedisCommand{
-				Command:    "ECHO",
-				Args:       []string{"banana"},
-				ArgsLength: 1,
-			},
-			wantErr: false,
-		},
+	}
+
+	invalidCommands := []struct {
+		name    string
+		input   string
+		want    *RedisCommand
+		wantErr bool
+	}{
 		{
 			name:    "Invalid command format",
 			input:   "*2\r\n$4\r\nECHO\r\n",
@@ -123,6 +129,28 @@ func TestParseRedisCommand(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
+	tests := []struct {
+		name    string
+		input   string
+		want    *RedisCommand
+		wantErr bool
+	}{
+		{
+			name:  "PING command",
+			input: "*1\r\n$4\r\nPING\r\n",
+			want: &RedisCommand{
+				Command:    "PING",
+				Args:       []string{},
+				ArgsLength: 0,
+			},
+			wantErr: false,
+		},
+	}
+
+	tests = append(tests, echoCommands...)
+	tests = append(tests, getSetSimpleCommands...)
+	tests = append(tests, invalidCommands...)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -28,7 +28,7 @@ func TestParse(t *testing.T) {
 		{
 			name:     "ECHO with invalid argument length",
 			cmd:      parser.RedisCommand{Command: "ECHO", Args: []string{"hello", "world"}, ArgsLength: 2},
-			expected: "+(error) ERR wrong number of arguments for command\r\n",
+			expected: "-(error) ERR wrong number of arguments for command\r\n",
 		},
 		{
 			name:     "SET",
@@ -38,7 +38,7 @@ func TestParse(t *testing.T) {
 		{
 			name:     "SET with invalid argument length",
 			cmd:      parser.RedisCommand{Command: "SET", Args: []string{"key1"}, ArgsLength: 1},
-			expected: "+(error) ERR wrong number of arguments for command\r\n",
+			expected: "-(error) ERR wrong number of arguments for command\r\n",
 		},
 		{
 			name: "GET",
@@ -51,7 +51,7 @@ func TestParse(t *testing.T) {
 		{
 			name:     "GET with invalid argument length",
 			cmd:      parser.RedisCommand{Command: "GET", Args: []string{"key", "extra"}, ArgsLength: 2},
-			expected: "+(error) ERR wrong number of arguments for command\r\n",
+			expected: "-(error) ERR wrong number of arguments for command\r\n",
 		},
 		{
 			name:     "Unknown command",
