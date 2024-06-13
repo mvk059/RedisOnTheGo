@@ -2,16 +2,10 @@ package parser
 
 import (
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/app/data"
 	"strconv"
 	"strings"
 )
-
-// RedisCommand represents a parsed Redis command.
-type RedisCommand struct {
-	Command    string   // Name of the Redis command
-	Args       []string // Arguments of the Redis command
-	ArgsLength int      // Length of the arguments
-}
 
 // ParseRedisCommand parses a Redis command string and returns a RedisCommand struct.
 //
@@ -28,7 +22,7 @@ type RedisCommand struct {
 // Example: *2\r\n$4\r\nECHO\r\n$6\r\nbanana\r\n
 //
 // If the command string is not in the valid format, an error is returned.
-func ParseRedisCommand(buf []byte) (*RedisCommand, error) {
+func ParseRedisCommand(buf []byte) (*data.RedisCommand, error) {
 	// Split the command string into parts using "\r\n" as the separator
 	parts := strings.Split(string(buf), "\r\n")
 
@@ -49,7 +43,7 @@ func ParseRedisCommand(buf []byte) (*RedisCommand, error) {
 	}
 
 	// Create a new RedisCommand struct with a pre-allocated slice for arguments
-	redisCmd := &RedisCommand{
+	redisCmd := &data.RedisCommand{
 		Args:       make([]string, 0, numArgs-1),
 		ArgsLength: numArgs - 1,
 	}

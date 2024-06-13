@@ -1,12 +1,13 @@
-package commands
+package instructions
 
 import (
+	"fmt"
 	"github.com/codecrafters-io/redis-starter-go/app/errors"
 	"io"
 )
 
-func Ping(rw io.ReadWriter) {
-	_, err := rw.Write([]byte("+PONG\r\n"))
+func Echo(rw io.ReadWriter, message string) {
+	_, err := rw.Write([]byte(fmt.Sprintf("+%s\r\n", message)))
 	if err != nil {
 		errors.HandleWritingError(err, "")
 		return

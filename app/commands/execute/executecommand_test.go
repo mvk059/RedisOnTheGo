@@ -1,61 +1,69 @@
-package parser_test
+package execute_test
 
 import (
 	"bytes"
+	parser2 "github.com/codecrafters-io/redis-starter-go/app/commands/execute"
 	"testing"
 
 	"github.com/codecrafters-io/redis-starter-go/app/data"
-	"github.com/codecrafters-io/redis-starter-go/app/parser"
 )
 
 func TestParse(t *testing.T) {
 	testCases := []struct {
 		name     string
-		cmd      parser.RedisCommand
+		cmd      data.RedisCommand
 		setup    func(storage data.StorageHelper)
 		expected string
 	}{
 		{
 			name:     "PING",
-			cmd:      parser.RedisCommand{Command: "PING"},
+			cmd:      data.RedisCommand{Command: "PING"},
 			expected: "+PONG\r\n",
 		},
 		{
 			name:     "ECHO",
-			cmd:      parser.RedisCommand{Command: "ECHO", Args: []string{"hello"}, ArgsLength: 1},
+			cmd:      data.RedisCommand{Command: "ECHO", Args: []string{"hello"}, ArgsLength: 1},
 			expected: "+hello\r\n",
 		},
 		{
 			name:     "ECHO with invalid argument length",
-			cmd:      parser.RedisCommand{Command: "ECHO", Args: []string{"hello", "world"}, ArgsLength: 2},
+			cmd:      data.RedisCommand{Command: "ECHO", Args: []string{"hello", "world"}, ArgsLength: 2},
 			expected: "-(error) ERR wrong number of arguments for command\r\n",
 		},
 		{
 			name:     "SET",
-			cmd:      parser.RedisCommand{Command: "SET", Args: []string{"key", "value"}, ArgsLength: 2},
+			cmd:      data.RedisCommand{Command: "SET", Args: []string{"key", "value"}, ArgsLength: 2},
+			expected: "+OK\r\n",
+		},
+		{
+			name:     "SET with timeout",
+			cmd:      data.RedisCommand{Command: "SET", Args: []string{"key", "value", "px", "100"}, ArgsLength: 4},
 			expected: "+OK\r\n",
 		},
 		{
 			name:     "SET with invalid argument length",
-			cmd:      parser.RedisCommand{Command: "SET", Args: []string{"key1"}, ArgsLength: 1},
+			cmd:      data.RedisCommand{Command: "SET", Args: []string{"key1"}, ArgsLength: 1},
 			expected: "-(error) ERR wrong number of arguments for command\r\n",
 		},
 		{
 			name: "GET",
-			cmd:  parser.RedisCommand{Command: "GET", Args: []string{"key"}, ArgsLength: 1},
+			cmd:  data.RedisCommand{Command: "GET", Args: []string{"key"}, ArgsLength: 1},
 			setup: func(storage data.StorageHelper) {
-				storage.Set("key", "value")
+				storage.Set("key", data.Data{
+					Value:          "value",
+					ExpiryTimeNano: 0,
+				})
 			},
-			expected: "value\r\n",
+			expected: "$5\r\nvalue\r\n",
 		},
 		{
 			name:     "GET with invalid argument length",
-			cmd:      parser.RedisCommand{Command: "GET", Args: []string{"key", "extra"}, ArgsLength: 2},
+			cmd:      data.RedisCommand{Command: "GET", Args: []string{"key", "extra"}, ArgsLength: 2},
 			expected: "-(error) ERR wrong number of arguments for command\r\n",
 		},
 		{
 			name:     "Unknown command",
-			cmd:      parser.RedisCommand{Command: "UNKNOWN"},
+			cmd:      data.RedisCommand{Command: "UNKNOWN"},
 			expected: "+COMMAND NOT RECOGNISED: UNKNOWN.\r\n",
 		},
 	}
@@ -67,7 +75,7 @@ func TestParse(t *testing.T) {
 				tc.setup(storage)
 			}
 			var buf bytes.Buffer
-			parser.Parse(&buf, storage, tc.cmd)
+			parser2.Execute(&buf, storage, tc.cmd)
 			result := buf.String()
 
 			if result != tc.expected {

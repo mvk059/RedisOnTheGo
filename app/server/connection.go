@@ -3,8 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/app/commands/execute"
+	"github.com/codecrafters-io/redis-starter-go/app/commands/parser"
 	"github.com/codecrafters-io/redis-starter-go/app/data"
-	"github.com/codecrafters-io/redis-starter-go/app/parser"
 	"io"
 	"net"
 )
@@ -16,7 +17,6 @@ func CreateConnection(listener net.Listener, storage data.StorageHelper) {
 			fmt.Println("\033[31mError accepting connection: \033[0m", err.Error())
 			return
 		}
-		//go handleConnection(conn, storage)
 		go func(conn net.Conn) {
 			defer conn.Close()
 			handleConnection(conn, storage)
@@ -41,6 +41,6 @@ func handleConnection(rw io.ReadWriter, storage data.StorageHelper) {
 			fmt.Printf(err.Error())
 			return
 		}
-		parser.Parse(rw, storage, *redisCommand)
+		execute.Execute(rw, storage, *redisCommand)
 	}
 }
