@@ -23,8 +23,10 @@ func start() {
 	fmt.Printf("Begin Process\n")
 
 	serverSettings := settings.ServerSettings{
-		Port:   *port,
-		Master: true,
+		Port:               *port,
+		Master:             true,
+		MasterReplId:       "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb",
+		MasterReplIdOffset: 0,
 	}
 	if replicaOf != nil && *replicaOf != "" {
 		fmt.Println("This is a Replica Server")

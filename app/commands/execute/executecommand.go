@@ -39,8 +39,6 @@ func Execute(rw io.ReadWriter, storage data.StorageHelper, cmd data.RedisCommand
 		}
 		if cmd.ArgsLength == 1 {
 			instructions.Info(rw, serverSettings, cmd.Args[0])
-		} else {
-			instructions.Info(rw, serverSettings, "server")
 		}
 	default:
 		fmt.Printf("%s: command not found\n", instruction)

@@ -2,28 +2,23 @@ package instructions
 
 import (
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/app/commands/parser"
 	"github.com/codecrafters-io/redis-starter-go/app/errors"
 	"github.com/codecrafters-io/redis-starter-go/app/settings"
 	"io"
-	"strings"
 )
 
 func Info(rw io.ReadWriter, serverSettings settings.ServerSettings, data string) {
-	var roleValue []string
-	roleValue = append(roleValue, "role:")
-	roleValue = append(roleValue, getRoleValue(serverSettings))
+	roleValue := make(map[string]string)
+	roleValue[settings.Role] = settings.GetRoleValue(serverSettings)
+	//roleValue["port"] = fmt.Sprintf("%d", serverSettings.Port)
+	roleValue[settings.MasterReplId] = serverSettings.MasterReplId
+	roleValue[settings.MasterReplIdOffset] = fmt.Sprintf("%d", serverSettings.MasterReplIdOffset)
 
-	res := strings.Join(roleValue, "")
-	_, err := rw.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(res), res)))
+	formattedInput := parser.GetEncodedStringFromMap(roleValue)
+	_, err := rw.Write([]byte(fmt.Sprintf("%s", formattedInput)))
 	if err != nil {
 		errors.HandleWritingError(err, "")
 		return
 	}
-}
-
-func getRoleValue(serverSettings settings.ServerSettings) string {
-	if serverSettings.Master {
-		return "master"
-	}
-	return "slave"
 }
