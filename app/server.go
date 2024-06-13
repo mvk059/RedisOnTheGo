@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	listen = flag.String("listen", ":6379", "address to listen to")
+	port = flag.Int("port", 6379, "address to listen to")
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 
 func start() {
 	fmt.Printf("Begin Process\n")
-	listener, err := net.Listen("tcp", *listen)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		fmt.Println("\033[31mFailed to bind to port 6379\n\033[0m")
 		return
