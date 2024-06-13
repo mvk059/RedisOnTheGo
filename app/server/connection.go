@@ -6,11 +6,12 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/commands/execute"
 	"github.com/codecrafters-io/redis-starter-go/app/commands/parser"
 	"github.com/codecrafters-io/redis-starter-go/app/data"
+	"github.com/codecrafters-io/redis-starter-go/app/settings"
 	"io"
 	"net"
 )
 
-func CreateConnection(listener net.Listener, storage data.StorageHelper) {
+func CreateConnection(listener net.Listener, storage data.StorageHelper, settings settings.ServerSettings) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -19,12 +20,12 @@ func CreateConnection(listener net.Listener, storage data.StorageHelper) {
 		}
 		go func(conn net.Conn) {
 			defer conn.Close()
-			handleConnection(conn, storage)
+			handleConnection(conn, storage, settings)
 		}(conn)
 	}
 }
 
-func handleConnection(rw io.ReadWriter, storage data.StorageHelper) {
+func handleConnection(rw io.ReadWriter, storage data.StorageHelper, serverSettings settings.ServerSettings) {
 	buf := make([]byte, 1024)
 	for {
 		_, err := rw.Read(buf)
@@ -41,6 +42,6 @@ func handleConnection(rw io.ReadWriter, storage data.StorageHelper) {
 			fmt.Printf(err.Error())
 			return
 		}
-		execute.Execute(rw, storage, *redisCommand)
+		execute.Execute(rw, storage, *redisCommand, serverSettings)
 	}
 }

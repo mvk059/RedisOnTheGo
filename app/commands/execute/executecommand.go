@@ -5,11 +5,12 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/commands/instructions"
 	"github.com/codecrafters-io/redis-starter-go/app/data"
 	"github.com/codecrafters-io/redis-starter-go/app/errors"
+	"github.com/codecrafters-io/redis-starter-go/app/settings"
 	"io"
 	"strings"
 )
 
-func Execute(rw io.ReadWriter, storage data.StorageHelper, cmd data.RedisCommand) {
+func Execute(rw io.ReadWriter, storage data.StorageHelper, cmd data.RedisCommand, serverSettings settings.ServerSettings) {
 	switch instruction := strings.ToUpper(cmd.Command); instruction {
 	case "PING":
 		instructions.Ping(rw)
@@ -31,6 +32,16 @@ func Execute(rw io.ReadWriter, storage data.StorageHelper, cmd data.RedisCommand
 			break
 		}
 		instructions.Get(rw, storage, cmd.Args[0])
+	case "INFO":
+		if cmd.ArgsLength > 1 {
+			errors.InvalidArgumentLengthError(rw)
+			break
+		}
+		if cmd.ArgsLength == 1 {
+			instructions.Info(rw, serverSettings, cmd.Args[0])
+		} else {
+			instructions.Info(rw, serverSettings, "server")
+		}
 	default:
 		fmt.Printf("%s: command not found\n", instruction)
 		errMessage := fmt.Sprintf("+COMMAND NOT RECOGNISED: %s.\r\n", instruction)
