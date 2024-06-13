@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/codecrafters-io/redis-starter-go/app/data"
+	"github.com/codecrafters-io/redis-starter-go/app/replication"
 	"github.com/codecrafters-io/redis-starter-go/app/server"
 	"github.com/codecrafters-io/redis-starter-go/app/settings"
+	"github.com/codecrafters-io/redis-starter-go/app/util"
 	"net"
 )
 
@@ -28,9 +30,18 @@ func start() {
 		MasterReplId:       "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb",
 		MasterReplIdOffset: 0,
 	}
+
 	if replicaOf != nil && *replicaOf != "" {
-		fmt.Println("This is a Replica Server")
-		serverSettings.Master = false
+		setupReplica(&serverSettings)
+		//fmt.Println("This is a Replica Server")
+		//host, port, err := parser.ParseReplicaParams(*replicaOf)
+		//if err != nil {
+		//	panic(fmt.Sprintf("Could not parse replicaOf params: %s", err))
+		//}
+		//serverSettings.Master = false
+		//serverSettings.MasterHost = host
+		//serverSettings.MasterPort = port
+		replication.Handshake(serverSettings)
 	}
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -42,4 +53,15 @@ func start() {
 
 	storage := data.NewStorage()
 	server.CreateConnection(listener, storage, serverSettings)
+}
+
+func setupReplica(serverSettings *settings.ServerSettings) {
+	fmt.Println("This is a Replica Server")
+	host, port, err := util.ParseReplicaParams(*replicaOf)
+	if err != nil {
+		panic(fmt.Sprintf("Could not parse replicaOf params: %s", err))
+	}
+	serverSettings.Master = false
+	serverSettings.MasterHost = host
+	serverSettings.MasterPort = port
 }

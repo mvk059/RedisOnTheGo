@@ -2,9 +2,9 @@ package instructions
 
 import (
 	"fmt"
-	"github.com/codecrafters-io/redis-starter-go/app/commands/parser"
 	"github.com/codecrafters-io/redis-starter-go/app/errors"
 	"github.com/codecrafters-io/redis-starter-go/app/settings"
+	"github.com/codecrafters-io/redis-starter-go/app/util"
 	"io"
 )
 
@@ -15,7 +15,7 @@ func Info(rw io.ReadWriter, serverSettings settings.ServerSettings, data string)
 	roleValue[settings.MasterReplId] = serverSettings.MasterReplId
 	roleValue[settings.MasterReplIdOffset] = fmt.Sprintf("%d", serverSettings.MasterReplIdOffset)
 
-	formattedInput := parser.GetEncodedStringFromMap(roleValue)
+	formattedInput := util.GetEncodedStringFromMap(roleValue)
 	_, err := rw.Write([]byte(fmt.Sprintf("%s", formattedInput)))
 	if err != nil {
 		errors.HandleWritingError(err, "")

@@ -5,6 +5,8 @@ type ServerSettings struct {
 	Master             bool
 	MasterReplId       string
 	MasterReplIdOffset int
+	MasterHost         string
+	MasterPort         int
 }
 
 func GetRoleValue(serverSettings ServerSettings) string {
