@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	port = flag.Int("port", 6379, "address to listen to")
+	port      = flag.Int("port", 6379, "address to listen to")
+	replicaOf = flag.String("replicaof", "", "Replicate to another server")
 )
 
 func main() {
@@ -22,8 +23,12 @@ func start() {
 	fmt.Printf("Begin Process\n")
 
 	serverSettings := settings.ServerSettings{
-		Port:   6379,
+		Port:   *port,
 		Master: true,
+	}
+	if replicaOf != nil && *replicaOf != "" {
+		fmt.Println("This is a Replica Server")
+		serverSettings.Master = false
 	}
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
