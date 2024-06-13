@@ -46,6 +46,8 @@ func Execute(rw io.ReadWriter, storage data.StorageHelper, cmd data.RedisCommand
 			break
 		}
 		instructions.ReplConf(rw, &serverSettings, cmd.Args)
+	case "PSYNC":
+		instructions.Psync(rw, serverSettings)
 	default:
 		fmt.Printf("%s: command not found\n", instruction)
 		errMessage := fmt.Sprintf("+COMMAND NOT RECOGNISED: %s.\r\n", instruction)
