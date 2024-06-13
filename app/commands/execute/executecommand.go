@@ -40,6 +40,12 @@ func Execute(rw io.ReadWriter, storage data.StorageHelper, cmd data.RedisCommand
 		if cmd.ArgsLength == 1 {
 			instructions.Info(rw, serverSettings, cmd.Args[0])
 		}
+	case "REPLCONF":
+		if cmd.ArgsLength < 1 {
+			errors.InvalidArgumentLengthError(rw)
+			break
+		}
+		instructions.ReplConf(rw, &serverSettings, cmd.Args)
 	default:
 		fmt.Printf("%s: command not found\n", instruction)
 		errMessage := fmt.Sprintf("+COMMAND NOT RECOGNISED: %s.\r\n", instruction)

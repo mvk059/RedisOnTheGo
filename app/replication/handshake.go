@@ -11,7 +11,11 @@ const PING = "*1\r\n$4\r\nPING\r\n"
 func Handshake(settings settings.ServerSettings) {
 	conn := CreateConnection(settings)
 	response := sendMessage(conn, PING)
-	fmt.Println("Response from handshake: ", response)
+	fmt.Println("Response from ping: ", response)
+	response = sendMessage(conn, fmt.Sprintf("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n%d\r\n", settings.Port))
+	fmt.Println("Response from REPLCONF listening port: ", response)
+	response = sendMessage(conn, fmt.Sprintf("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n"))
+	fmt.Println("Response from REPLCONF config: ", response)
 }
 
 func sendMessage(rw io.ReadWriter, message string) string {
